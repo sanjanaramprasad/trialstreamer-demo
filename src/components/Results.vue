@@ -11,6 +11,7 @@
            style="margin-top: 4rem; z-index:100; width: 100%">
         <b-img src="@/assets/loading.gif" class="loading-img" style="opacity: 0.2; filter: blur(1px);" height="240" />
       </div>
+      
       <div v-else key="results" class="result-wrapper">
         <div v-if="sortedArticles.length > 0">
           <p style="font-size: small; text-align: right;">
@@ -18,6 +19,9 @@
             Showing <span v-if="isTruncated">first {{rows}} results only</span>
             <span v-else>{{ rows }} results</span>
           </p>
+
+          
+
           <b-container flex class="p-0">
             <b-row>
               <b-col cols="auto" class="mr-auto">
@@ -64,19 +68,27 @@
             </b-row>
           </b-container>
 
-          <Card
+          <b-container style="margin-bottom: 2em">
+          
+          <Summary
+            v-bind:item="summary" :allArticles="sortedArticles"
+            class="result-cards">
+          </Summary>
+          </b-container>
+
+          <!-- <Card
             v-for="item in sortedArticles"
             :key="item.pmid"
             v-bind:item="item"
             class="result-cards">
-          </Card>
+          </Card> -->
 
-          <div class="d-flex justify-content-center">
+          <!-- <div class="d-flex justify-content-center">
             <b-pagination
               v-model="currentPage"
               :total-rows="rows"
               :per-page="perPage"></b-pagination>
-          </div>
+          </div> -->
         </div>
         <div v-else class="result-cards" key="no-results">
           <div style="text-align: center; margin-top: 2em">
@@ -92,7 +104,8 @@
 <script>
 import axios from "axios";
 import Examples from "./Examples.vue";
-import Card from "./Card.vue";
+//import Card from "./Card.vue";
+import Summary from "./Summary.vue";
 
 function getPaginatedItems(items, page, pageSize) {
   var pg = page || 1,
@@ -104,7 +117,7 @@ function getPaginatedItems(items, page, pageSize) {
 
 export default {
   name: "Results",
-  components: { Examples, Card },
+  components: { Examples, Summary },
   data() {
     return {
       perPage: 25,
@@ -154,12 +167,14 @@ export default {
         },
       }).then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
+        console.log(response.data)
         const link = document.createElement("a");
         link.href = url;
         link.setAttribute("download", "trialstreamer.ris");
         document.body.appendChild(link);
         link.click();
       });
+      
     },
   },
   computed: {
@@ -198,6 +213,9 @@ export default {
     },
     showExamples() {
       return !this.$store.getters.getTags.length && !this.getArticles.length;
+    },
+    summary() {
+      return this.$store.getters.getSummary;
     },
     sortedArticles() {
       let sorttype= this.sortOrder;
