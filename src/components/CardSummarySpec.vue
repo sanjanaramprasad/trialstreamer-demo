@@ -7,11 +7,11 @@
   
   <div class="row">
 
-    <div class="card" v-for="item in this.searchArticlesResults">
-      <blockquote >
+    <div class="card" v-for="item in this.searchArticlesResults" :key="item">
+<!--       <blockquote >
         <h6 >{{ item.ti }}</h6>
       </blockquote>
-
+ -->
       
         <h6>Population</h6>
       

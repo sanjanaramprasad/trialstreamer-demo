@@ -1,13 +1,19 @@
 <template>
     <b-card>
 
+    <div v-if="this.summary == ''"
+           key="loading"
+           class="d-flex justify-content-center"
+           style="margin-top: 4rem; z-index:100; width: 100%">
+        <b-img src="@/assets/loading.gif" class="loading-img" style="opacity: 0.2; filter: blur(1px);" height="240" />
+        
+      </div>
     
-    <h3 > Summary </h3>
     <b-container style="margin-bottom: 2em">
-    <!-- <a class="sum" >
-
-    {{this.allArticles[0]}}
-    </a> -->
+        
+    <div v-if="this.summary != ''">
+    <h3 > Summary </h3>
+    </div>
     <div class="sum" v-for=" i in iterateWords" :key="i" >
         <span
             v-if="i.color == '#003f5c'"
@@ -34,6 +40,12 @@
             v-if="i.color == '#007bff'"
             class ="ptext_token"
             @click="mouseIn(i.word, 'ptext')">
+                {{i.word}}
+        </span>
+        
+        <span
+            v-if="i.color == 'white'"
+            class ="other_token">
                 {{i.word}}
         </span>
 
@@ -75,15 +87,15 @@
 
   
 </template>
-
+<!-- {'summary': 'ZS  may  be safe  and', 'aspect_indices': ['population', 'interventions', 'interventions', 'other', 'outcomes', 'outcomes']} -->
 
 <script>
 
 import Card from "./CardSummarySpec.vue";
-
+import axios from "axios";
 export default {
   name: "Summary",
-  props: ['item', 'allArticles'],
+  props: [ 'allArticles'],
    components: { Card },
   data() {
     return {
@@ -91,26 +103,54 @@ export default {
       searchWord: '',
       hover_type: '',
       searchArticlesResults: [],
-      color: 'white'
+      color: 'white',
+      summary: '',
+      aspects: [],
+      autocompleteItems: [],
     };
   },
 
-  computed: {
-    iterateWords() {
-        var sent_words = this.item.punchline_text.split(' ');
-        let sent_items = [];
-        let colors = ['#003f5c', '#ffa600', '#bc5090', '#007bff']
-        var i ;
-        for (i = 0; i < sent_words.length; i++) {
-            sent_items.push({
-                word:sent_words[i],
-                color: colors[i%4]
+  mounted() {
+                const path = 'http://localhost:5001/summarize'
+            axios.post(path, {
+              "data" : this.allArticles
+            })
+            .then(response => {
+              this.summary = response.data['summary'];
+              this.aspects = response.data['aspect_indices'];
+              // alert(JSON.stringify(response.data));
+            })
+            .catch(err =>{
+              alert(JSON.stringify(err));
             });
-        }
-        return sent_items;
+            },
+    
+  computed: {
+    
+      
+    
+        iterateWords() {
+           
+            var sent_words = this.summary.split(' ');
+            
+            let sent_items = [];
+            var colors_map = {'population': '#003f5c', 
+                              'interventions': '#ffa600', 
+                              'outcomes': '#bc5090', 
+                              'punchline_text':'#007bff',
+                              'other': 'white'};
+            var i ;
+            for (i = 0; i < sent_words.length; i++) {
+                sent_items.push({
+                    word:sent_words[i],
+                    color: colors_map[this.aspects[i]]
+                });
+            }
+            alert(JSON.stringify(sent_items));
+            return sent_items;
 
-    }
-},
+        },
+   },
 
 methods: {
         mouseIn(searchWord, hover_type) {
@@ -174,7 +214,25 @@ methods: {
         mouseOut() {
             //this.hover = false;
 
-        }
+        },
+    
+    
+         // summarizeData: function () {
+         //        const path = 'http://localhost:5001/summarize'
+         //    axios.post(path, {
+         //      "data" : this.allArticles
+         //    })
+         //    .then(response => {
+         //      this.summary = response.data['summary'];
+         //      this.aspects = response.data['aspect_indices'];
+         //      // alert(JSON.stringify(response.data));
+         //    })
+         //    .catch(err =>{
+         //      alert(JSON.stringify(err));
+         //    });
+         //    },
+        
+        
         
 
 }
@@ -226,6 +284,11 @@ methods: {
 }
 
 .ptext_token{
+    background-color: white;
+    color:black;
+    display: inline;
+}
+.other_token{
     background-color: white;
     color:black;
     display: inline;

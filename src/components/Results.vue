@@ -71,12 +71,12 @@
           <b-container style="margin-bottom: 2em">
           
           <Summary
-            v-bind:item="summary" :allArticles="sortedArticles"
+            v-bind:allArticles="sortedArticles"
             class="result-cards">
           </Summary>
           </b-container>
 
-          <!-- <Card
+<!--           <Card
             v-for="item in sortedArticles"
             :key="item.pmid"
             v-bind:item="item"
