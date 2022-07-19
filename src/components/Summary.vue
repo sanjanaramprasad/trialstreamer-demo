@@ -1,6 +1,7 @@
 <template>
     <b-card>
-
+    {{this.aspectOpt}}
+        
     <div v-if="this.summary == ''"
            key="loading"
            class="d-flex justify-content-center"
@@ -16,45 +17,59 @@
     </div>
     <div class="sum" v-for=" i in iterateWords" :key="i" >
         <span
+            style="text-decoration: underline var(--population-background)"
             v-if="i.color == '#003f5c'"
             @click="mouseIn(i.word, 'pop')"
-            v-bind:class='{ "population_token_clicked": hover_type == "pop" && searchWord == i.word, "population_token" : hover_type != "pop" || searchWord != i.word}'>
+            v-bind:class='{ "population_token_clicked": (hover_type == "pop" || hover_type == "all") && (searchWord == i.word), "population_token" : hover_type != "pop" || searchWord != i.word}'>
                 {{i.word}}
         </span>
 
         <span 
+            style="text-decoration: underline var(--intervention-background)"
             v-if="i.color == '#ffa600'"
             class ="intervention_token"
-            @click="mouseIn(i.word, 'int')">
+            @click="mouseIn(i.word, 'int')"
+            v-bind:class='{ "intervention_token_clicked": (hover_type == "int" || hover_type == "all") && (searchWord == i.word), "intervention_token" : hover_type != "int" || searchWord != i.word}'>
                 {{i.word}}
         </span>
 
         <span 
+            style="text-decoration: underline var(--outcome-background)"
             v-if="i.color == '#bc5090'"
-            class ="output_token"
-            @click="mouseIn(i.word, 'out')">
+            class ="outcome_token"
+            @click="mouseIn(i.word, 'out')"
+            v-bind:class='{ "outcome_token_clicked": (hover_type == "out" || hover_type == "all") && (searchWord == i.word), "outcome_token" : hover_type != "out" || searchWord != i.word}'>
                 {{i.word}}
         </span>
 
         <span
+            style="text-decoration: underline var(--gray)"
             v-if="i.color == '#007bff'"
             class ="ptext_token"
-            @click="mouseIn(i.word, 'ptext')">
+            @click="mouseIn(i.word, 'ptext')"
+            v-bind:class='{ "ptext_token_clicked": (hover_type == "ptext" || hover_type == "all") && (searchWord == i.word), "ptext_token" : hover_type != "ptext" || searchWord != i.word}'>
                 {{i.word}}
         </span>
         
         <span
-            v-if="i.color == 'white'"
+            v-if="i.color == 'white' "
             class ="other_token">
                 {{i.word}}
         </span>
 
     
     </div>
+    
     </b-container>
     
     <b-container style="margin-bottom: 2em">
-    <div v-if="hover" > 
+        
+    <div v-if="this.summary != ''">
+        <!--         {{getData()}} -->
+         <button @click="copy">Copy for Annotation</button>
+    </div>
+        
+    <div v-if=" (hover) || (iterateWords && this.system == 'vanilla')" > 
     <!-- <Card
             v-for="item in this.searchArticlesResults"
             :key="item.pmid"
@@ -66,6 +81,7 @@
     
     <Card
             v-bind:searchArticlesResults="searchArticlesResults"
+            v-bind:otherArticlesResults="otherArticlesResults"
             v-bind:hover_type="hover_type"
             v-bind:searchWord="searchWord"
             class="result-cards">
@@ -95,7 +111,7 @@ import Card from "./CardSummarySpec.vue";
 import axios from "axios";
 export default {
   name: "Summary",
-  props: [ 'allArticles'],
+  props: [ 'allArticles', 'aspectOpt'],
    components: { Card },
   data() {
     return {
@@ -103,22 +119,43 @@ export default {
       searchWord: '',
       hover_type: '',
       searchArticlesResults: [],
+      otherArticlesResults: [],
       color: 'white',
       summary: '',
       aspects: [],
       autocompleteItems: [],
+      clipboardData: {},
+      system: '',
+      has_aspects: true,
+      labels: [],
+      
     };
   },
 
   mounted() {
-                const path = 'http://localhost:5001/summarize'
-            axios.post(path, {
-              "data" : this.allArticles
+            //const url = `http://localhost:5001/${process.env.VUE_SUMMARIZE_TYPE}`
+            //const path = 'http://localhost:5001/summarize'
+            axios({
+              url: `http://ec2-54-158-4-141.compute-1.amazonaws.com:5001/${process.env.VUE_APP_SUMMARIZE_TYPE}`,
+              method: 'POST',
+              data : this.allArticles.slice(0,5)
             })
             .then(response => {
               this.summary = response.data['summary'];
               this.aspects = response.data['aspect_indices'];
-              // alert(JSON.stringify(response.data));
+              if (process.env.VUE_APP_SUMMARIZE_TYPE.includes('structured')){
+                  this.system = 'structured';
+                  this.has_aspect = true;
+                  
+              }
+              else{
+                  
+                  this.system = 'vanilla';
+                  this.has_aspect = false;
+                  this.hover_type = 'all';
+                  this.searchArticlesResults = this.allArticles.slice(0,5);
+              }
+              
             })
             .catch(err =>{
               alert(JSON.stringify(err));
@@ -130,9 +167,7 @@ export default {
       
     
         iterateWords() {
-           
             var sent_words = this.summary.split(' ');
-            
             let sent_items = [];
             var colors_map = {'population': '#003f5c', 
                               'interventions': '#ffa600', 
@@ -140,41 +175,139 @@ export default {
                               'punchline_text':'#007bff',
                               'other': 'white'};
             var i ;
+            
             for (i = 0; i < sent_words.length; i++) {
-                sent_items.push({
-                    word:sent_words[i],
-                    color: colors_map[this.aspects[i]]
-                });
+                
+                if (process.env.VUE_APP_SUMMARIZE_TYPE.includes('structured')){
+                    sent_items.push({
+                        word:sent_words[i],
+                        color: colors_map[this.aspects[i]]
+                    });
+                }
+                else{
+                    
+                    sent_items.push({
+                        word:sent_words[i],
+                        color: colors_map['other']});
+                }
             }
-            alert(JSON.stringify(sent_items));
+        
+            
             return sent_items;
 
         },
+      
+        
+      
+        
    },
 
 methods: {
+    
+        getData() {
+//           alert(JSON.stringify(this.$store.getters.getTags));
+          this.clipboardData['system'] = this.system;
+          this.clipboardData['has aspects'] = this.has_aspect;
+          this.clipboardData['summary'] = this.summary.split(' ');
+          this.clipboardData['search terms'] = this.$store.getters.getTags;
+          let terms = {};
+          var i;
+          var searches = this.$store.getters.getTags;
+          for (i = 0; i < searches.length; i++){
+              var search_item = searches[i];
+              var aspect = search_item["classes"];
+              var text = search_item["text"];
+              var name_map = {'population': 'population', 
+                              'interventions': 'intervention', 
+                              'outcomes': 'outcome'};
+              
+              if (!terms.hasOwnProperty(aspect) ){
+                  terms[name_map[aspect]] =  text;
+              }
+              
+            
+              
+          }
+          this.clipboardData['search terms'] = terms;
+          this.clipboardData['studies'] = []
+          for(var j = 0; j < this.allArticles.slice(0,1).length; j++){
+              var study_dict = {};
+              var article_j = this.allArticles[j];
+              study_dict['title'] = article_j['ti'];
+              study_dict['punchline'] = article_j['punchline_text'];
+              study_dict['populations'] = article_j['population'];
+              study_dict['interventions'] = article_j['interventions'];
+              study_dict['outcomes'] = article_j['outcomes'];
+              this.clipboardData['studies'].push(study_dict);
+          }
+            
+        
+          if (this.has_aspect){
+              this.clipboardData['label names'] = this.aspects;
+              this.clipboardData['labels'] = []
+              var aspect_map = {'population': 0, 
+                              'interventions': 1, 
+                              'outcomes': 2, 
+                              'punchline_text':3};
+              for (i = 0; i < this.aspects.length; i++){
+                  var a = this.aspects[i];
+                  this.clipboardData['labels'].push(aspect_map[a]);
+                  
+              }
+              
+          }
+         
+          return this.clipboardData;
+        },
+    
+        copy() {
+            this.getData();
+            var copyText = JSON.stringify(this.clipboardData);
+            alert(copyText);
+            var el = document.createElement('textarea');
+            el.value = copyText;
+            el.setAttribute('readonly', '');
+            el.style = {
+                position: 'absolute',
+                left: '-9999px'
+            };
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        },
+    
         mouseIn(searchWord, hover_type) {
             this.searchArticlesResults = [];
-            this.hover = true;
-            this.hover_type = hover_type;
+            this.otherArticlesResults = [];
+            this.hover = false;
+            
+            if(this.aspectOpt == 'all_aspects' || hover_type == 'other'){
+                this.hover_type ='all';
+            }
+            else{
+                this.hover_type = hover_type;
+            }
+            
             this.searchWord = searchWord;
             var candidates;
+            alert(this.hover_type);
+            for(var j = 0; j < this.allArticles.slice(0,5).length; j++){
 
-            for(var j = 0; j < this.allArticles.length; j++){
 
-
-                if (this.hover_type == 'pop'){
+                if (this.hover_type == 'pop' || this.hover_type == 'all'){
                     candidates = this.allArticles[j].population;
                 }
 
-                else if (this.hover_type == 'int'){
+                else if (this.hover_type == 'int' || this.hover_type == 'all'){
                     candidates = this.allArticles[j].interventions;
+                    
                 }
-                else if (this.hover_type == 'out'){
+                else if (this.hover_type == 'out' || this.hover_type == 'all'){
                     candidates = this.allArticles[j].outcomes;
                 }
 
-                else if (this.hover_type == 'ptext'){
+                else if (this.hover_type == 'ptext' || this.hover_type == 'all'){
                     candidates = [this.allArticles[j].punchline_text];
                     
                 }
@@ -183,21 +316,26 @@ methods: {
                 for(var k = 0; k < candidates.length; k++){
                     let result = candidates[k];
                     
-                    if(result.includes(this.searchWord)){
-                        //alert(result.includes(this.searchWord));
+                    if(result.includes(this.searchWord.trim())){
                         append_flag = true;
                     }
                 }
 
                 if (append_flag){
-                    this.searchArticlesResults.push(this.allArticles[j])
+                    this.searchArticlesResults.push(this.allArticles[j]);
+                }
+                else{
+                   this.otherArticlesResults.push(this.allArticles[j]);
+                    
                 }
                 
                 
                     
             }
+            alert('ended');
+            this.hover = true;
             
-
+            
             
         },
 
@@ -212,7 +350,7 @@ methods: {
         },
 
         mouseOut() {
-            //this.hover = false;
+            this.hover = false;
 
         },
     
@@ -270,13 +408,13 @@ methods: {
 }
 
 
-.output_token{
+.outcome_token{
     background-color: white;
     color:black;
     display: inline;
 }
 
-.output_token:hover{
+.outcome_token:hover{
     background-color: var(--outcome-background);
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
     display: inline;

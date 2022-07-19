@@ -10,6 +10,7 @@
            class="d-flex justify-content-center"
            style="margin-top: 4rem; z-index:100; width: 100%">
         <b-img src="@/assets/loading.gif" class="loading-img" style="opacity: 0.2; filter: blur(1px);" height="240" />
+          
       </div>
       
       <div v-else key="results" class="result-wrapper">
@@ -20,14 +21,32 @@
             <span v-else>{{ rows }} results</span>
           </p>
 
-          
 
           <b-container flex class="p-0">
             <b-row>
-              <b-col cols="auto" class="mr-auto">
+                
+                
+                <b-col cols="auto" class="mr-auto" v-if="getSystemType == 'structured'">
                 <b-button-toolbar
                   style="margin-bottom: 2em">
                   <b-button-group>
+                     <b-form-radio-group
+                      v-model="aspectOpt"
+                      :options="aspectOptions"
+                      button-variant="light"
+                      size="sm"
+                      buttons
+                      name="radios-btn-default">
+                    </b-form-radio-group>
+                  </b-button-group>
+                </b-button-toolbar>
+              </b-col>
+                
+                
+<!--               <b-col cols="auto" class="mr-auto">
+                <b-button-toolbar
+                  style="margin-bottom: 2em">
+                   <b-button-group>
                     <b-form-radio-group
                       v-model="filterType"
                       name="radios-btn-component"
@@ -41,7 +60,7 @@
                     </b-form-radio-group>
                   </b-button-group>
                 </b-button-toolbar>
-              </b-col>
+              </b-col> -->
               <b-col cols="auto">
                 <b-button-toolbar
                   style="margin-bottom: 2em">
@@ -54,14 +73,14 @@
                       buttons
                       name="radios-btn-default">
                     </b-form-radio-group>
-                    <b-button
+<!--                     <b-button
                       v-bind:disabled="rows == 0"
                       v-on:click="download"
                       size="sm"
                       v-b-tooltip.hover
                       title="Download citations">
                       <b-icon icon="cloud-download"></b-icon>
-                    </b-button>
+                    </b-button> -->
                   </b-button-group>
                 </b-button-toolbar>
               </b-col>
@@ -70,8 +89,10 @@
 
           <b-container style="margin-bottom: 2em">
           
+        
           <Summary
             v-bind:allArticles="sortedArticles"
+            v-bind:aspectOpt="aspectOpt"
             class="result-cards">
           </Summary>
           </b-container>
@@ -122,7 +143,8 @@ export default {
     return {
       perPage: 25,
       currentPage: 1,
-      sortOrder: 'year',
+      sortOrder: 'score',
+      aspectOpt: 'model_predicted',
       filterType: 'all',
       sortOptions: [
           {
@@ -134,6 +156,17 @@ export default {
           value: 'year',
         },
       ],
+      aspectOptions: [
+          {
+              text: "All aspects",
+              value: 'all_aspects',
+          },
+        {
+          text: "Model predicted aspects",
+          value: 'model_predicted',
+        },
+          
+      ]
     };
   },
   props: {},
@@ -197,6 +230,7 @@ export default {
       return this.$store.getters.getLoadingArticles;
     },
     getTags() {
+//       alert(JSON.stringify(this.$store.getters.getTags));
       return this.$store.getters.getTags;
     },
     getArticles() {
@@ -208,6 +242,19 @@ export default {
         return this.$store.getters.getArticles.filter(function(el) {return el.article_type==filterType});
       }
     },
+      
+    getSystemType(){
+        if (process.env.VUE_APP_SUMMARIZE_TYPE.includes('structured')){
+                  return 'structured';
+                  
+              }
+        else{
+            
+            return 'vanilla';
+        }
+        
+    },
+      
     isTruncated() {
       return this.getArticles.length >= 250;
     },

@@ -1,3 +1,4 @@
 VUE_APP_SERVER_URL=
 VUE_APP_API_KEY=
+VUE_SUMMARIZE_TYPE=structured_summarize
 NODE_ENV=<development|production>

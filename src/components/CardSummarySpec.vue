@@ -1,49 +1,201 @@
 <template>
 
 
+<div class="result-card shadow-sm p-3 mb-5 rounded"  >
+    {{this.hover_type}}
+    <h6>
+        Overview
+    </h6>
+    
+    <div class="row">
+        <div class="card" v-for="(item, index) in this.searchArticlesResults" :key="item">
 
-<div class="result-card shadow-sm p-3 mb-5 rounded"  style="background-color:var(--population-background);" v-if="hover_type == 'pop' && this.searchArticlesResults && this.searchArticlesResults.length">
-  
-  
-  <div class="row">
+            <blockquote >
+                    <h6> Study {{index + 1}} </h6>
+                    <h6 >{{ item.ti }}</h6>
+            </blockquote>
 
-    <div class="card" v-for="item in this.searchArticlesResults" :key="item">
-<!--       <blockquote >
-        <h6 >{{ item.ti }}</h6>
-      </blockquote>
- -->
-      
-        <h6>Population</h6>
-      
-  
-      <ul>
-        <li v-for="p in distinct(item.population)" :key="p">
-                 <span v-html="highlight_pop(p , 'pop')">
-                  {{fixParens(p) }}
-                 </span>
-              </li>
-              <li v-if="!item.population.length">
-                <em>None extracted</em>
-              </li>
-      </ul>
-      
+
+            <h6 v-if="item.article_type == 'preprint' ||  item.article_type == 'journal article'">
+                        <a
+                          v-bind:href="`https://www.ncbi.nlm.nih.gov/pubmed/${item.pmid}`"
+                          target="_blank">{{ item.pmid }}</a>
+                        {{ item.citation }}
+                        <a
+                          v-if="item.dois && item.dois[0]"
+                          v-bind:href="`https://dx.doi.org/${item.dois[0]}`"
+                          target="_blank">{{ item.dois[0] }}</a>
+            </h6>
+
+
+            <span v-html="highlight_pop(item.punchline_text , 'ptext')"> {{item.punchline_text}} </span>      
+
+        </div>
+        
+        <div class="card" v-for="(item, index) in this.otherArticlesResults" :key="item">
+
+            <blockquote >
+                    <h6> Study {{ getIndex(index) }} </h6>
+                    <h6 >{{ item.ti }}</h6>
+            </blockquote>
+
+
+            <h6 v-if="item.article_type == 'preprint' ||  item.article_type == 'journal article'">
+                        <a
+                          v-bind:href="`https://www.ncbi.nlm.nih.gov/pubmed/${item.pmid}`"
+                          target="_blank">{{ item.pmid }}</a>
+                        {{ item.citation }}
+                        <a
+                          v-if="item.dois && item.dois[0]"
+                          v-bind:href="`https://dx.doi.org/${item.dois[0]}`"
+                          target="_blank">{{ item.dois[0] }}</a>
+            </h6>
+
+
+            <span v-html="highlight_pop(item.punchline_text , 'ptext')"> {{item.punchline_text}} </span>      
+
+        </div>
+        
     </div>
-
-  </div>
-
-</div>
-
-
+    
 
     
- 
+<!-- Population cards begin -->
+<!--     <span style="text-decoration: solid underline var(--population-background) 4px;" v-if="(hover_type == 'pop' || hover_type == 'all')">
+        Population
+    </span> -->
+    <div class="row" v-if="(hover_type == 'pop' || hover_type == 'all')">
+        
+        
+        <div class="card" style="border-color: var(--population-background); border-width: thick;" v-for="(item, index) in this.searchArticlesResults" :key="item">    
+            
+            <ul>
+                    <h6> Study {{index + 1}} </h6>
+                    <li v-for="p in distinct(item.population)" :key="p">
+                             <span v-html="highlight_pop(p , 'pop')">
+                              {{ p }}
+                             </span>
+                    </li>
+                    <li v-if="!item.population.length">
+                            <em>None extracted</em>
+                    </li>
+            </ul>       
+
+        </div>
+        
+        <div class="card" style="border-color: var(--population-background); border-width: thick;" v-for="(item, index)  in this.otherArticlesResults" :key="item">
+
+
+
+            <ul>
+                    <h6> Study {{ getIndex(index) }} </h6>
+                    <li v-for="p in distinct(item.population)" :key="p">
+                             <span v-html="highlight_pop(p , 'pop')">
+                              {{p }}
+                             </span>
+                    </li>
+                    <li v-if="!item.population.length">
+                            <em>None extracted</em>
+                    </li>
+            </ul>       
+
+        </div>
+    </div>
+<!-- Population cards end -->
+
+<!-- Interventions cards begin -->
+    <span style="text-decoration:solid underline var(--intervention-background) 4px;" v-if="(hover_type == 'int' || hover_type == 'all')">
+        Interventions
+    </span>
+    <div class="row" v-if="(hover_type == 'int' || hover_type == 'all')">
+        
+        <div class="card" style="border-color: var(--intervention-background); border-width: thick;" v-for="(item, index) in this.searchArticlesResults" :key="item">    
+
+            <ul>
+                    <h6> Study {{index + 1}} </h6>
+                    <li v-for="i in distinct(item.interventions)" :key="i">
+                             <span v-html="highlight_pop(i , 'int')">
+                              {{fixParens(i) }}
+                             </span>
+                    </li>
+                    <li v-if="!item.interventions.length">
+                            <em>None extracted</em>
+                    </li>
+            </ul>       
+
+        </div>
+        
+        <div class="card" style="border-color: var(--intervention-background); border-width: thick;" v-for="(item, index) in this.otherArticlesResults" :key="item">
+
+
+
+            <ul>
+                    <h6> Study {{ getIndex(index) }} </h6>
+                    <li v-for="i in distinct(item.interventions)" :key="i">
+                             <span v-html="highlight_pop(i , 'int')">
+                              {{fixParens(i) }}
+                             </span>
+                    </li>
+                    <li v-if="!item.interventions.length">
+                            <em>None extracted</em>
+                    </li>
+            </ul>       
+
+        </div>
+    </div>
+<!-- Interventions cards end -->
+    
+<!-- Outcomes cards begin -->
+    <span style="text-decoration: solid underline var(--outcome-background) 4px;" v-if="(hover_type == 'out' || hover_type == 'all')">
+        Outcomes
+    </span>
+    <div class="row" v-if="(hover_type == 'out' || hover_type == 'all')">
+        
+        <div class="card" style="border-color: var(--outcome-background); border-width: thick;" v-for="(item, index) in this.searchArticlesResults" :key="item">    
+
+            <ul>
+                    <h6> Study {{index + 1}} </h6>
+                    <li v-for="o in distinct(item.outcomes)" :key="o">
+                             <span v-html="highlight_pop(o , 'out')">
+                              {{fixParens(o) }}
+                             </span>
+                    </li>
+                    <li v-if="!item.outcomes.length">
+                            <em>None extracted</em>
+                    </li>
+            </ul>       
+
+        </div>
+        
+        <div class="card" style="border-color: var(--outcome-background); border-width: thick;" v-for="(item, index) in this.otherArticlesResults" :key="item">
+
+
+
+            <ul>
+                    <h6> Study {{ getIndex(index) }} </h6>
+                    <li v-for="o in distinct(item.outcomes)" :key="o">
+                             <span v-html="highlight_pop(o , 'out')">
+                              {{fixParens(o) }}
+                             </span>
+                    </li>
+                    <li v-if="!item.outcomes.length">
+                            <em>None extracted</em>
+                    </li>
+            </ul>       
+
+        </div>
+    </div>
+<!-- Outcomes cards end -->
+    
+    
+</div> 
 </template>
 
 
 <script>
 export default {
   name: "Card",
-  props: ['searchArticlesResults', 'hover_type', 'searchWord'],
+  props: ['searchArticlesResults', 'otherArticlesResults','hover_type', 'searchWord'],
   computed: {
     
   },
@@ -75,7 +227,11 @@ export default {
       let b = this._fixParens(a,"[","]");
       return b;
     },
+    getIndex: function(i) {
+      return i + this.searchArticlesResults.length + 1
+    },
     highlight_pop(s, s_type) {
+//         alert(s);
         if(this.searchWord === '') { return s }
         
         // when removing the .toLowerCase() your search becomes case-sensitive
@@ -84,15 +240,15 @@ export default {
         }
         else if (s_type == 'int'){
 
-          return s.toLowerCase().replace(this.searchWord, '<span style="background: var(--intervention-background); color: white;">' + this.searchWord + '</span>')
+          return s.replace(this.searchWord, '<span style="background: yellow; color: black;">' + this.searchWord + '</span>')
         }
         else if (s_type == 'out'){
-
-          return s.toLowerCase().replace(this.searchWord, '<span style="background: var(--outcome-background); color: white;">' + this.searchWord + '</span>')
+          
+          return s.replace(this.searchWord, '<span style="background: var(--outcome-background); color: white;">' + this.searchWord + '</span>')
         }
         else if (s_type == 'ptext'){
 
-          return s.toLowerCase().replace(this.searchWord, '<span style="background: #6f7070; color: white;">' + this.searchWord + '</span>')
+          return s.replace(this.searchWord, '<span style="background: #6f7070; color: white;">' + this.searchWord + '</span>')
         }
        
     },
@@ -206,8 +362,17 @@ export default {
   overflow-x: auto;
   overflow-y: hidden;
 }
+    
+.rowns{
+  align-items: stretch;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;  
+}
 .card {
-  margin-top: 0;
+  margin-top: 2rem;
   text-align: left;
   max-width: 40%;
   max-height: 400px;
