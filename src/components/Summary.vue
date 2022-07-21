@@ -299,7 +299,6 @@ methods: {
             }
             
             else if(summaryType == 'template_nodiff'){
-                  alert(this.template_nodiff_summary);
                   if (this.template_nodiff_summary != '' && (typeof this.template_nodiff_summary !== 'undefined')){
                         this.directReflect({'aspect_indices' : this.template_nodiff_aspects, 'summary': this.template_nodiff_summary});
 
