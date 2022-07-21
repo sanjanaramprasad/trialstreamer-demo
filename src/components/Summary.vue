@@ -283,7 +283,7 @@ methods: {
                   
               }
             
-            else if(summaryType == 'template_diff'){
+            else if(summaryType == 'template_diff' && (typeof this.template_diff_summary !== 'undefined')){
                   if (this.template_diff_summary != ''){
                         this.directReflect({'aspect_indices' : this.template_diff_aspects, 'summary': this.template_diff_summary});
 
@@ -299,7 +299,8 @@ methods: {
             }
             
             else if(summaryType == 'template_nodiff'){
-                  if (this.template_nodiff_summary != ''){
+                  alert(this.template_nodiff_summary);
+                  if (this.template_nodiff_summary != '' && (typeof this.template_nodiff_summary !== 'undefined')){
                         this.directReflect({'aspect_indices' : this.template_nodiff_aspects, 'summary': this.template_nodiff_summary});
 
                       }
