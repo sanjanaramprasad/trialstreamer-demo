@@ -283,8 +283,8 @@ methods: {
                   
               }
             
-            else if(summaryType == 'template_diff' && (typeof this.template_diff_summary !== 'undefined')){
-                  if (this.template_diff_summary != ''){
+            else if(summaryType == 'template_diff'){
+                  if (this.template_diff_summary != '' && (typeof this.template_diff_summary !== 'undefined')){
                         this.directReflect({'aspect_indices' : this.template_diff_aspects, 'summary': this.template_diff_summary});
 
                       }
