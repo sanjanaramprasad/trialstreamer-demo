@@ -159,7 +159,7 @@ export default {
             //const url = `http://localhost:5001/${process.env.VUE_SUMMARIZE_TYPE}`
             //const path = 'http://localhost:5001/summarize'
                 axios({
-                      url: `http://ec2-54-158-4-141.compute-1.amazonaws.com:5001/${process.env.VUE_APP_SUMMARIZE_TYPE}`,
+                      url: `${process.env.VUE_APP_SUMM_URL}/${process.env.VUE_APP_SUMMARIZE_TYPE}`,
                       method: 'POST',
                       data : this.allArticles.slice(0,5)
                     })
@@ -238,7 +238,7 @@ methods: {
     
         directReflect(summ_data){
             axios({
-                      url: `http://ec2-54-158-4-141.compute-1.amazonaws.com:5001/reflect`,
+                      url: `${process.env.VUE_APP_SUMM_URL}/reflect`,
                       method: 'POST',
                       data : summ_data
                     })
@@ -255,7 +255,7 @@ methods: {
     
         directSummarizeTemplate(summ_data){
             axios({
-                    url: `http://ec2-54-158-4-141.compute-1.amazonaws.com:5001/template`,
+                    url: `${process.env.VUE_APP_SUMM_URL}/template`,
                     method: 'POST',
                     data : summ_data
             })
