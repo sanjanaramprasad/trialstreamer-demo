@@ -2,7 +2,9 @@
 
 
 <div class="result-card shadow-sm p-3 mb-5 rounded"  >
-    {{this.hover_type}}
+    
+    
+<!--     {{this.hover_type}} -->
     <h6>
         Overview
     </h6>
@@ -52,7 +54,7 @@
             </h6>
 
 
-            <span v-html="highlight_pop(item.punchline_text , 'ptext')"> {{item.punchline_text}} </span>      
+            <span> {{item.punchline_text}} </span>      
 
         </div>
         
@@ -72,7 +74,7 @@
             <ul>
                     <h6> Study {{index + 1}} </h6>
                     <li v-for="p in distinct(item.population)" :key="p">
-                             <span v-html="highlight_pop(p , 'pop')">
+                             <span >
                               {{ p }}
                              </span>
                     </li>
@@ -90,7 +92,7 @@
             <ul>
                     <h6> Study {{ getIndex(index) }} </h6>
                     <li v-for="p in distinct(item.population)" :key="p">
-                             <span v-html="highlight_pop(p , 'pop')">
+                             <span >
                               {{p }}
                              </span>
                     </li>
@@ -114,7 +116,7 @@
             <ul>
                     <h6> Study {{index + 1}} </h6>
                     <li v-for="i in distinct(item.interventions)" :key="i">
-                             <span v-html="highlight_pop(i , 'int')">
+                             <span >
                               {{fixParens(i) }}
                              </span>
                     </li>
@@ -132,7 +134,7 @@
             <ul>
                     <h6> Study {{ getIndex(index) }} </h6>
                     <li v-for="i in distinct(item.interventions)" :key="i">
-                             <span v-html="highlight_pop(i , 'int')">
+                             <span>
                               {{fixParens(i) }}
                              </span>
                     </li>
@@ -156,7 +158,7 @@
             <ul>
                     <h6> Study {{index + 1}} </h6>
                     <li v-for="o in distinct(item.outcomes)" :key="o">
-                             <span v-html="highlight_pop(o , 'out')">
+                             <span >
                               {{fixParens(o) }}
                              </span>
                     </li>
@@ -174,7 +176,7 @@
             <ul>
                     <h6> Study {{ getIndex(index) }} </h6>
                     <li v-for="o in distinct(item.outcomes)" :key="o">
-                             <span v-html="highlight_pop(o , 'out')">
+                             <span >
                               {{fixParens(o) }}
                              </span>
                     </li>

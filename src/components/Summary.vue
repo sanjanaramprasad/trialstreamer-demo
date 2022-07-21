@@ -1,6 +1,17 @@
 <template>
     <b-card>
-    {{this.aspectOpt}}
+      
+    <b-container style="margin-bottom: 4em" v-if="this.vanilla_summary != '' && this.system == 'structured'">
+        
+        <div style="background: #dedfe0; padding: 0.5rem; border-radius: 0.2rem"> 
+            <h6> Template </h6>
+            <select v-on:input="getSummary($event.target.value)"  > 
+                <option value="vanilla" key="vanilla"> General Summary </option>
+                <option value="template_diff" key="template_diff"> __interventions__ appears to have a beneficial effect on __outcomes__ in patients with __population__</option>
+                <option value="template_nodiff" key="template_nodiff">There is no  evidence that __interventions__ has an effect on __outcomes__ in patients with __population__  </option>
+            </select>
+        </div>
+    </b-container>
         
     <div v-if="this.summary == ''"
            key="loading"
@@ -66,10 +77,10 @@
         
     <div v-if="this.summary != ''">
         <!--         {{getData()}} -->
-         <button @click="copy">Copy for Annotation</button>
+         <button @click="copy">Click to copy for Annotation</button>
     </div>
         
-    <div v-if=" (hover) || (iterateWords && this.system == 'vanilla')" > 
+    <div v-if="(this.summary != '') && ((hover) || (iterateWords && this.system == 'vanilla'))" > 
     <!-- <Card
             v-for="item in this.searchArticlesResults"
             :key="item.pmid"
@@ -118,11 +129,18 @@ export default {
       hover: false,
       searchWord: '',
       hover_type: '',
+      summaryType: 'vanilla',
       searchArticlesResults: [],
       otherArticlesResults: [],
       color: 'white',
       summary: '',
       aspects: [],
+      vanilla_summary: '',
+      vanilla_aspects: [],
+      template_diff_summary:'',
+      template_diff_aspects:[],
+      template_nodiff_summary: '',
+      template_nodiff_aspects: [],
       autocompleteItems: [],
       clipboardData: {},
       system: '',
@@ -132,34 +150,47 @@ export default {
     };
   },
 
+//   vanilla_summary(){
+      
+      
+//   },
+
   mounted() {
             //const url = `http://localhost:5001/${process.env.VUE_SUMMARIZE_TYPE}`
             //const path = 'http://localhost:5001/summarize'
-            axios({
-              url: `http://ec2-54-158-4-141.compute-1.amazonaws.com:5001/${process.env.VUE_APP_SUMMARIZE_TYPE}`,
-              method: 'POST',
-              data : this.allArticles.slice(0,5)
-            })
-            .then(response => {
-              this.summary = response.data['summary'];
-              this.aspects = response.data['aspect_indices'];
-              if (process.env.VUE_APP_SUMMARIZE_TYPE.includes('structured')){
-                  this.system = 'structured';
-                  this.has_aspect = true;
-                  
-              }
-              else{
-                  
-                  this.system = 'vanilla';
-                  this.has_aspect = false;
-                  this.hover_type = 'all';
-                  this.searchArticlesResults = this.allArticles.slice(0,5);
-              }
+                axios({
+                      url: `http://ec2-54-158-4-141.compute-1.amazonaws.com:5001/${process.env.VUE_APP_SUMMARIZE_TYPE}`,
+                      method: 'POST',
+                      data : this.allArticles.slice(0,5)
+                    })
+                    .then(response => {
+                      this.summary = response.data['summary'];
+                      this.vanilla_summary = response.data['summary'];
+                      this.aspects = response.data['aspect_indices'];
+                      this.vanilla_aspects = response.data['aspect_indices'];
+                      if (process.env.VUE_APP_SUMMARIZE_TYPE.includes('structured')){
+                          this.system = 'structured';
+                          this.has_aspect = true;
+                          
+
+                      }
+                      else{
+
+                          this.system = 'vanilla';
+                          this.has_aspect = false;
+                          this.hover_type = 'all';
+                          this.searchArticlesResults = this.allArticles.slice(0,5);
+                      }
+
+                    })
+                    .catch(err =>{
+                      alert(JSON.stringify(err));
+                    });
+
+                
+      
               
-            })
-            .catch(err =>{
-              alert(JSON.stringify(err));
-            });
+            
             },
     
   computed: {
@@ -203,6 +234,89 @@ export default {
    },
 
 methods: {
+    
+    
+        directReflect(summ_data){
+            axios({
+                      url: `http://ec2-54-158-4-141.compute-1.amazonaws.com:5001/reflect`,
+                      method: 'POST',
+                      data : summ_data
+                    })
+                    .then(response => {
+                      this.summary = response.data['summary'];
+                      this.aspects = response.data['aspect_indices'];
+
+                    })
+                    .catch(err =>{
+                      alert(JSON.stringify(err));
+                    });
+            
+        },
+    
+        directSummarizeTemplate(summ_data){
+            axios({
+                    url: `http://ec2-54-158-4-141.compute-1.amazonaws.com:5001/template`,
+                    method: 'POST',
+                    data : summ_data
+            })
+            .then(response => {
+                this.summary = response.data['summary'];
+                this.aspects = response.data['aspect_indices'];
+                if (summ_data['direc'] == 'diff'){
+                    this.template_diff_summary = response.data['summary'];
+                    this.template_diff_aspects = response.data['aspect_indices'];
+                }
+                else{
+                    this.template_nodiff_summary = response.data['summary'];
+                    this.template_nodiff_aspects = response.data['aspect_indices'];
+                }
+            })
+            .catch({ 
+              });
+            
+        },
+    
+        getSummary(summaryType){
+            this.summary = '';
+            if(summaryType == 'vanilla'){
+                    this.directReflect({'aspect_indices' : this.vanilla_aspects, 'summary': this.vanilla_summary});
+                  
+              }
+            
+            else if(summaryType == 'template_diff'){
+                  if (this.template_diff_summary != ''){
+                        this.directReflect({'aspect_indices' : this.template_diff_aspects, 'summary': this.template_diff_summary});
+
+                      }
+             
+                
+                  else { 
+                         this.directSummarizeTemplate({'data':this.allArticles.slice(0,5), 'summary': this.vanilla_summary, 'direc': 'diff'});
+                      
+                        
+                  }
+                  
+            }
+            
+            else if(summaryType == 'template_nodiff'){
+                  if (this.template_nodiff_summary != ''){
+                        this.directReflect({'aspect_indices' : this.template_nodiff_aspects, 'summary': this.template_nodiff_summary});
+
+                      }
+             
+                
+                  else { 
+                         this.directSummarizeTemplate({'data':this.allArticles.slice(0,5), 'summary': this.vanilla_summary, 
+                                                       'direc':'nodiff'});
+                      
+
+                  }
+                  
+            }
+            
+            
+            
+        },
     
         getData() {
 //           alert(JSON.stringify(this.$store.getters.getTags));
@@ -263,7 +377,7 @@ methods: {
         copy() {
             this.getData();
             var copyText = JSON.stringify(this.clipboardData);
-            alert(copyText);
+            //alert(copyText);
             var el = document.createElement('textarea');
             el.value = copyText;
             el.setAttribute('readonly', '');
@@ -291,7 +405,7 @@ methods: {
             
             this.searchWord = searchWord;
             var candidates;
-            alert(this.hover_type);
+            //alert(this.hover_type);
             for(var j = 0; j < this.allArticles.slice(0,5).length; j++){
 
 
@@ -332,7 +446,7 @@ methods: {
                 
                     
             }
-            alert('ended');
+            //alert('ended');
             this.hover = true;
             
             
