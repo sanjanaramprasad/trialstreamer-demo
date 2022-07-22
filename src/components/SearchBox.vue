@@ -1,7 +1,7 @@
 <template>
 <div class="search">
-    <b-alert show variant="success" dismissible fade>
-        <strong>Welcome!</strong> Trialstreamer is an artificial intelligence system, which finds and summarises new trial publications, registrations, and preprints in COVID-19. We monitor databases continuously, so you can find new RCT evidence the moment it is published, and surface the biggest and highest quality trials first.
+    <b-alert show variant="danger" dismissible fade>
+        <strong>Warning!</strong> This is a research prototype that uses machine learning to automatically produce summaries of clinical trials. These summaries are not reliable (yet!), and are not to be trusted.
 Please see the <a href="about/">About page</a> for information about how this all works.
   </b-alert>
 

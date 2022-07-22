@@ -63,9 +63,9 @@
 
     
 <!-- Population cards begin -->
-<!--     <span style="text-decoration: solid underline var(--population-background) 4px;" v-if="(hover_type == 'pop' || hover_type == 'all')">
+     <span style="text-decoration: solid underline var(--population-background) 4px;" v-if="(hover_type == 'pop' || hover_type == 'all')">
         Population
-    </span> -->
+    </span> 
     <div class="row" v-if="(hover_type == 'pop' || hover_type == 'all')">
         
         
