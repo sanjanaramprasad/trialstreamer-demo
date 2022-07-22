@@ -329,15 +329,33 @@ methods: {
           var searches = this.$store.getters.getTags;
           for (i = 0; i < searches.length; i++){
               var search_item = searches[i];
-              var aspect = search_item["classes"];
+              var aspect;
+//               [{"field":"population","text":"COVID-19 [population]","cui":"TS-COV19"},{"field":"interventions","text":"Remdesivir [interventions]","cui":"C4726677"}]
               var text = search_item["text"];
+              
+              if(text.includes('population')){
+                  aspect = 'population';
+              }
+              
+              else if(text.includes('interventions')){
+                  aspect = 'interventions'
+                  
+              }
+              else if(text.includes('outcomes')){
+                  
+                  aspect = 'outcomes'
+              }
+              
+//               alert(aspect);
+//               [{"field":"population","text":"COVID-19 [population]","cui":"TS-COV19"},{"field":"interventions","text":"Remdesivir [interventions]","cui":"C4726677"}]
+//               var aspect = search_item["classes"];
+//               var text = search_item["text"];
+              
               var name_map = {'population': 'population', 
                               'interventions': 'intervention', 
                               'outcomes': 'outcome'};
+              terms[name_map[aspect]] =  text;
               
-              if (!terms.hasOwnProperty(aspect) ){
-                  terms[name_map[aspect]] =  text;
-              }
               
             
               
@@ -362,7 +380,8 @@ methods: {
               var aspect_map = {'population': 0, 
                               'interventions': 1, 
                               'outcomes': 2, 
-                              'punchline_text':3};
+                              'punchline_text':3,
+                               'other': 4};
               for (i = 0; i < this.aspects.length; i++){
                   var a = this.aspects[i];
                   this.clipboardData['labels'].push(aspect_map[a]);
@@ -408,7 +427,7 @@ methods: {
             //alert(this.hover_type);
             for(var j = 0; j < this.allArticles.slice(0,5).length; j++){
 
-
+                candidates = [];
                 if (this.hover_type == 'pop' || this.hover_type == 'all'){
                     candidates = this.allArticles[j].population;
                 }
