@@ -337,15 +337,18 @@ methods: {
           this.clipboardData['has aspects'] = this.has_aspect;
           this.clipboardData['summary'] = this.summary.split(' ');
           this.clipboardData['search terms'] = this.$store.getters.getTags;
-          if ( this.template_used != ''){
-              this.clipboardData['template'] = this.template_used;
-          }
-          else{
-              if ('template' in this.clipboardData){
-                  delete this.clipboardData['template'];
+            
+          if (this.system == 'structured'){
+              if ( this.template_used != ''){
+                  this.clipboardData['template'] = this.template_used;
               }
-              else
-              this.clipboardData['template'] = '';
+              else{
+                  if ('template' in this.clipboardData){
+                      delete this.clipboardData['template'];
+                  }
+                  else
+                  this.clipboardData['template'] = '';
+              }
           }
           let terms = {};
           var i;
