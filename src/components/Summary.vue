@@ -6,9 +6,9 @@
         <div style="background: #dedfe0; padding: 0.5rem; border-radius: 0.2rem"> 
             <h6> Template </h6>
             <select v-on:input="getSummary($event.target.value)"  > 
-                <option value="vanilla" key="vanilla"> General Summary </option>
-                <option value="template_diff" key="template_diff"> __interventions__ appears to have a beneficial effect on __outcomes__ in patients with __population__</option>
-                <option value="template_nodiff" key="template_nodiff">There is no  evidence that __interventions__ has an effect on __outcomes__ in patients with __population__  </option>
+                <option value="vanilla" key="vanilla"> Default Summary </option>
+                <option value="template_diff" key="template_diff"> {{this.template_diff_str}}</option>
+                <option value="template_nodiff" key="template_nodiff"> {{this.template_nodiff_str}} </option>
             </select>
         </div>
     </b-container>
@@ -80,7 +80,7 @@
          <button @click="copy">Click to copy for Annotation</button>
     </div>
         
-    <div v-if="(this.summary != '') && ((hover) || (iterateWords && this.system == 'vanilla'))" > 
+    <div v-if="this.summary != '' || (iterateWords && this.system == 'vanilla')" > 
     <!-- <Card
             v-for="item in this.searchArticlesResults"
             :key="item.pmid"
@@ -137,6 +137,9 @@ export default {
       aspects: [],
       vanilla_summary: '',
       vanilla_aspects: [],
+      template_used: '',
+      template_diff_str: '__interventions__ appears to have a beneficial effect on __outcomes__ in patients with __population__',
+      template_nodiff_str:'There is no  evidence that __interventions__ has an effect on __outcomes__ in patients with __population__',
       template_diff_summary:'',
       template_diff_aspects:[],
       template_nodiff_summary: '',
@@ -168,6 +171,7 @@ export default {
                       this.vanilla_summary = response.data['summary'];
                       this.aspects = response.data['aspect_indices'];
                       this.vanilla_aspects = response.data['aspect_indices'];
+                      this.searchArticlesResults = this.allArticles.slice(0,5);
                       if (process.env.VUE_APP_SUMMARIZE_TYPE.includes('structured')){
                           this.system = 'structured';
                           this.has_aspect = true;
@@ -179,7 +183,7 @@ export default {
                           this.system = 'vanilla';
                           this.has_aspect = false;
                           this.hover_type = 'all';
-                          this.searchArticlesResults = this.allArticles.slice(0,5);
+                          
                       }
 
                     })
@@ -245,6 +249,7 @@ methods: {
                     .then(response => {
                       this.summary = response.data['summary'];
                       this.aspects = response.data['aspect_indices'];
+                      this.template_used = '';
 
                     })
                     .catch(err =>{
@@ -265,10 +270,12 @@ methods: {
                 if (summ_data['direc'] == 'diff'){
                     this.template_diff_summary = response.data['summary'];
                     this.template_diff_aspects = response.data['aspect_indices'];
+                    this.template_used = this.template_diff_str;
                 }
                 else{
                     this.template_nodiff_summary = response.data['summary'];
                     this.template_nodiff_aspects = response.data['aspect_indices'];
+                    this.template_used = this.template_nodiff_str;
                 }
             })
             .catch({ 
@@ -280,18 +287,22 @@ methods: {
             this.summary = '';
             if(summaryType == 'vanilla'){
                     this.directReflect({'aspect_indices' : this.vanilla_aspects, 'summary': this.vanilla_summary});
+                    this.template_used = '';
+                
                   
               }
             
             else if(summaryType == 'template_diff'){
                   if (this.template_diff_summary != '' && (typeof this.template_diff_summary !== 'undefined')){
                         this.directReflect({'aspect_indices' : this.template_diff_aspects, 'summary': this.template_diff_summary});
+                        this.template_used = this.template_diff_str;
 
                       }
              
                 
                   else { 
                          this.directSummarizeTemplate({'data':this.allArticles.slice(0,5), 'summary': this.vanilla_summary, 'direc': 'diff'});
+                         this.template_used = this.template_nodiff_str;
                       
                         
                   }
@@ -301,6 +312,7 @@ methods: {
             else if(summaryType == 'template_nodiff'){
                   if (this.template_nodiff_summary != '' && (typeof this.template_nodiff_summary !== 'undefined')){
                         this.directReflect({'aspect_indices' : this.template_nodiff_aspects, 'summary': this.template_nodiff_summary});
+                        this.template_used = this.template_diff_str;
 
                       }
              
@@ -308,6 +320,7 @@ methods: {
                   else { 
                          this.directSummarizeTemplate({'data':this.allArticles.slice(0,5), 'summary': this.vanilla_summary, 
                                                        'direc':'nodiff'});
+                         this.template_used = this.template_diff_str;
                       
 
                   }
@@ -324,6 +337,16 @@ methods: {
           this.clipboardData['has aspects'] = this.has_aspect;
           this.clipboardData['summary'] = this.summary.split(' ');
           this.clipboardData['search terms'] = this.$store.getters.getTags;
+          if ( this.template_used != ''){
+              this.clipboardData['template'] = this.template_used;
+          }
+          else{
+              if ('template' in this.clipboardData){
+                  delete this.clipboardData['template'];
+              }
+              else
+              this.clipboardData['template'] = '';
+          }
           let terms = {};
           var i;
           var searches = this.$store.getters.getTags;

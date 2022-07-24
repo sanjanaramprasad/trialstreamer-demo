@@ -16,9 +16,7 @@
       <div v-else key="results" class="result-wrapper">
         <div v-if="sortedArticles.length > 0">
           <p style="font-size: small; text-align: right;">
-            <b-icon-exclamation-triangle v-if="isTruncated" />
-            Showing <span v-if="isTruncated">first {{rows}} results only</span>
-            <span v-else>{{ rows }} results</span>
+            first 5 results only
           </p>
 
 

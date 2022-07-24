@@ -6,6 +6,8 @@
     <b-navbar-brand to="/" >
        <img src="@/assets/logo.png" class="d-inline-block align-top"  height="54">
     </b-navbar-brand>
+      
+     
 
     <b-collapse id="nav-text-collapse" is-nav>
       <b-navbar-nav class="mr-auto">
@@ -21,9 +23,17 @@
 
 
   </b-navbar>
+      
+ <div class="text-center">
+<v-card-title primary-title class="justify-center">
+        <h3> Exploratory System </h3>
+ </v-card-title>
+    </div>
+   
 
 
 </div>
+
 </template>
 
 <script>

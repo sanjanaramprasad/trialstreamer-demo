@@ -30,7 +30,7 @@
             </h6>
 
 
-            <span v-html="highlight_pop(item.punchline_text , 'ptext')"> {{item.punchline_text}} </span>      
+            <span > {{item.punchline_text}} </span>      
 
         </div>
         
