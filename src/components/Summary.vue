@@ -346,8 +346,6 @@ methods: {
                   if ('template' in this.clipboardData){
                       delete this.clipboardData['template'];
                   }
-                  else
-                  this.clipboardData['template'] = '';
               }
           }
           let terms = {};
