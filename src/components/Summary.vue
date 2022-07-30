@@ -138,12 +138,13 @@ export default {
       searchWord: '',
       hover_type: '',
     sortOrder: 'score',
-      summaryType: 'vanilla',
+      pickedTemplate: false,
       searchArticlesResults: [],
       otherArticlesResults: [],
       color: 'white',
       summary: '',
       aspects: [],
+      summaryType: 'vanilla',
       vanilla_summary: '',
       vanilla_aspects: [],
       template_used: '',
@@ -283,10 +284,9 @@ methods: {
     
        
         getVanillaSummary(){
-            if(this.summary == ''){
+            if(this.summary == '' && this.pickedTemplate == false){
                 this.makeRequest();
             }
-            
             return this.summary;
             
         },
@@ -376,6 +376,7 @@ methods: {
     
         getSummary(summaryType){
             this.summary = '';
+            this.pickedTemplate = true;
             if(summaryType == 'vanilla'){
                     this.directReflect({'aspect_indices' : this.vanilla_aspects, 'summary': this.vanilla_summary});
                     this.template_used = '';
