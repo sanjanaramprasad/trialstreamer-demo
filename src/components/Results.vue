@@ -88,16 +88,17 @@
           
           
 
-          <b-container style="margin-bottom: 2em">
+          <b-container style="margin-bottom: 2em" >
               
           
           
         
           <Summary
-            v-bind:allArticles="sortedArticles"
             v-bind:aspectOpt="aspectOpt"
-            class="result-cards">
+            class="result-cards"
+            >
           </Summary>
+        
           </b-container>
 
 <!--           <Card
@@ -130,6 +131,7 @@ import axios from "axios";
 import Examples from "./Examples.vue";
 //import Card from "./Card.vue";
 import Summary from "./Summary.vue";
+
 
 function getPaginatedItems(items, page, pageSize) {
   var pg = page || 1,
@@ -186,6 +188,7 @@ export default {
     }
   },
   methods: {
+     
      download: function () {
       axios({
         url: `${process.env.VUE_APP_SERVER_URL}/picosearch`,
@@ -276,6 +279,8 @@ export default {
           return b.year - a.year;
         }
       };
+      
+      //alert(JSON.stringify(this.$store.getters.getTags));
       let result = this.getArticles.slice().sort(sortFn);
       return getPaginatedItems(result, this.currentPage, this.perPage);
     },

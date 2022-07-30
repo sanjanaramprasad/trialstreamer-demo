@@ -23,7 +23,7 @@
     
     <b-container style="margin-bottom: 2em">
         
-    <div v-if="this.summary != ''">
+    <div v-if="this.getVanillaSummary() && sortedArticles.length > 0">
     <h3 > Summary </h3>
     </div>
     <div class="sum" v-for=" i in iterateWords" :key="i" >
@@ -120,15 +120,24 @@
 
 import Card from "./CardSummarySpec.vue";
 import axios from "axios";
+    
+function getPaginatedItems(items, page, pageSize) {
+  var pg = page || 1,
+      pgSize = pageSize || 100,
+      offset = (pg - 1) * pgSize,
+      pagedItems = window._.drop(items, offset).slice(0, pgSize);
+  return pagedItems;
+}
 export default {
   name: "Summary",
-  props: [ 'allArticles', 'aspectOpt'],
+  props: [ 'aspectOpt'],
    components: { Card },
   data() {
     return {
       hover: false,
       searchWord: '',
       hover_type: '',
+    sortOrder: 'score',
       summaryType: 'vanilla',
       searchArticlesResults: [],
       otherArticlesResults: [],
@@ -152,6 +161,13 @@ export default {
       
     };
   },
+    watch: {
+    getArticles(to, from) {
+      if(!this._.isEqual(to, from)) {
+        this.currentPage = 1;
+      }
+    }
+  },
 
 //   vanilla_summary(){
       
@@ -161,35 +177,38 @@ export default {
   mounted() {
             //const url = `http://localhost:5001/${process.env.VUE_SUMMARIZE_TYPE}`
             //const path = 'http://localhost:5001/summarize'
-                axios({
-                      url: `${process.env.VUE_APP_SUMM_URL}/${process.env.VUE_APP_SUMMARIZE_TYPE}`,
-                      method: 'POST',
-                      data : this.allArticles.slice(0,5)
-                    })
-                    .then(response => {
-                      this.summary = response.data['summary'];
-                      this.vanilla_summary = response.data['summary'];
-                      this.aspects = response.data['aspect_indices'];
-                      this.vanilla_aspects = response.data['aspect_indices'];
-                      this.searchArticlesResults = this.allArticles.slice(0,5);
-                      if (process.env.VUE_APP_SUMMARIZE_TYPE.includes('structured')){
-                          this.system = 'structured';
-                          this.has_aspect = true;
+                
+//                 axios({
+//                       url: `${process.env.VUE_APP_SUMM_URL}/${process.env.VUE_APP_SUMMARIZE_TYPE}`,
+//                       method: 'POST',
+//                       data : this.sortedArticles.slice(0,5)
+//                     })
+//                     .then(response => {
+//                      this.summary = response.data['summary'];
+//                       this.vanilla_summary = response.data['summary'];
+//                       this.aspects = response.data['aspect_indices'];
+//                       this.vanilla_aspects = response.data['aspect_indices'];
+//                       this.searchArticlesResults = this.sortedArticles.slice(0,5);
+//                       if (process.env.VUE_APP_SUMMARIZE_TYPE.includes('structured')){
+//                           this.system = 'structured';
+//                           this.has_aspect = true;
                           
 
-                      }
-                      else{
+//                       }
+//                       else{
 
-                          this.system = 'vanilla';
-                          this.has_aspect = false;
-                          this.hover_type = 'all';
+//                           this.system = 'vanilla';
+//                           this.has_aspect = false;
+//                           this.hover_type = 'all';
                           
-                      }
+//                       }
+                     
 
-                    })
-                    .catch(err =>{
-                      alert(JSON.stringify(err));
-                    });
+                    
+//                 })
+//                     .catch(err =>{
+//                       alert(JSON.stringify(err));
+//                     });
 
                 
       
@@ -200,6 +219,27 @@ export default {
   computed: {
     
       
+          getArticles() {
+               return this.$store.getters.getArticles;
+              
+        },
+      
+        sortedArticles() {
+          let sorttype= this.sortOrder;
+          let sortFn = function (a, b) {
+            if (sorttype=='score') {
+              return b.score - a.score;
+            } else {
+              return b.year - a.year;
+            }
+          };
+
+          //alert(JSON.stringify(this.$store.getters.getTags));
+          let result = this.getArticles.slice().sort(sortFn);
+          return getPaginatedItems(result, this.currentPage, this.perPage);
+        },
+      
+        
     
         iterateWords() {
             var sent_words = this.summary.split(' ');
@@ -236,10 +276,61 @@ export default {
       
         
    },
+    
+
 
 methods: {
     
-    
+       
+        getVanillaSummary(){
+            if(this.summary == ''){
+                this.makeRequest();
+            }
+            
+            return this.summary;
+            
+        },
+        makeRequest(){
+            //const url = `http://localhost:5001/${process.env.VUE_SUMMARIZE_TYPE}`
+            //const path = 'http://localhost:5001/summarize'
+                
+                axios({
+                      url: `${process.env.VUE_APP_SUMM_URL}/${process.env.VUE_APP_SUMMARIZE_TYPE}`,
+                      method: 'POST',
+                      data : this.sortedArticles.slice(0,5)
+                    })
+                    .then(response => {
+                     this.summary = response.data['summary'];
+                      this.vanilla_summary = response.data['summary'];
+                      this.aspects = response.data['aspect_indices'];
+                      this.vanilla_aspects = response.data['aspect_indices'];
+                      this.searchArticlesResults = this.sortedArticles.slice(0,5);
+                      if (process.env.VUE_APP_SUMMARIZE_TYPE.includes('structured')){
+                          this.system = 'structured';
+                          this.has_aspect = true;
+                          
+
+                      }
+                      else{
+
+                          this.system = 'vanilla';
+                          this.has_aspect = false;
+                          this.hover_type = 'all';
+                          
+                      }
+                      
+
+                    
+                })
+                    .catch(err =>{
+                      alert(JSON.stringify(err));
+                    });
+
+                
+      
+              
+            
+            },
         directReflect(summ_data){
             axios({
                       url: `${process.env.VUE_APP_SUMM_URL}/reflect`,
@@ -301,7 +392,7 @@ methods: {
              
                 
                   else { 
-                         this.directSummarizeTemplate({'data':this.allArticles.slice(0,5), 'summary': this.vanilla_summary, 'direc': 'diff'});
+                         this.directSummarizeTemplate({'data':this.sortedArticles.slice(0,5), 'summary': this.vanilla_summary, 'direc': 'diff'});
                          this.template_used = this.template_nodiff_str;
                       
                         
@@ -318,7 +409,7 @@ methods: {
              
                 
                   else { 
-                         this.directSummarizeTemplate({'data':this.allArticles.slice(0,5), 'summary': this.vanilla_summary, 
+                         this.directSummarizeTemplate({'data':this.sortedArticles.slice(0,5), 'summary': this.vanilla_summary, 
                                                        'direc':'nodiff'});
                          this.template_used = this.template_diff_str;
                       
@@ -386,9 +477,9 @@ methods: {
           }
           this.clipboardData['search terms'] = terms;
           this.clipboardData['studies'] = []
-          for(var j = 0; j < this.allArticles.slice(0,1).length; j++){
+          for(var j = 0; j < this.sortedArticles.slice(0,1).length; j++){
               var study_dict = {};
-              var article_j = this.allArticles[j];
+              var article_j = this.sortedArticles[j];
               study_dict['title'] = article_j['ti'];
               study_dict['punchline'] = article_j['punchline_text'];
               study_dict['populations'] = article_j['population'];
@@ -449,23 +540,23 @@ methods: {
             this.searchWord = searchWord;
             var candidates;
             //alert(this.hover_type);
-            for(var j = 0; j < this.allArticles.slice(0,5).length; j++){
+            for(var j = 0; j < this.sortedArticles.slice(0,5).length; j++){
 
                 candidates = [];
                 if (this.hover_type == 'pop' || this.hover_type == 'all'){
-                    candidates = this.allArticles[j].population;
+                    candidates = this.sortedArticles[j].population;
                 }
 
                 else if (this.hover_type == 'int' || this.hover_type == 'all'){
-                    candidates = this.allArticles[j].interventions;
+                    candidates = this.sortedArticles[j].interventions;
                     
                 }
                 else if (this.hover_type == 'out' || this.hover_type == 'all'){
-                    candidates = this.allArticles[j].outcomes;
+                    candidates = this.sortedArticles[j].outcomes;
                 }
 
                 else if (this.hover_type == 'ptext' || this.hover_type == 'all'){
-                    candidates = [this.allArticles[j].punchline_text];
+                    candidates = [this.sortedArticles[j].punchline_text];
                     
                 }
 
@@ -479,10 +570,10 @@ methods: {
                 }
 
                 if (append_flag){
-                    this.searchArticlesResults.push(this.allArticles[j]);
+                    this.searchArticlesResults.push(this.sortedArticles[j]);
                 }
                 else{
-                   this.otherArticlesResults.push(this.allArticles[j]);
+                   this.otherArticlesResults.push(this.sortedArticles[j]);
                     
                 }
                 
