@@ -148,7 +148,7 @@ export default {
       vanilla_summary: '',
       vanilla_aspects: [],
       template_used: '',
-      template_diff_str: '__interventions__ appears to have a beneficial effect on __outcomes__ in patients with __population__',
+      template_diff_str: '__interventions__ appears to have a significant effect on __outcomes__ in patients with __population__',
       template_nodiff_str:'There is no  evidence that __interventions__ has an effect on __outcomes__ in patients with __population__',
       template_diff_summary:'',
       template_diff_aspects:[],
